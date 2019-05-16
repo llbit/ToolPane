@@ -1,0 +1,79 @@
+plugins {
+ id "java"
+ id "application"
+ id "maven"
+}
+
+mainClassName = "se.llbit.fx.ToolPaneDemo"
+group = 'se.llbit'
+version = '0.1'
+
+sourceCompatibility = targetCompatibility = '1.8'
+
+compileJava.options.encoding = compileTestJava.options.encoding = 'UTF-8'
+
+javadoc {
+  options.encoding = 'UTF-8'
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+task javadocJar(type: Jar) {
+  classifier = 'javadoc'
+  from javadoc
+}
+
+task sourcesJar(type: Jar) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+artifacts {
+  archives javadocJar, sourcesJar
+}
+
+signing {
+  required { project.hasProperty('signing.keyId') }
+  sign configurations.archives
+}
+
+// Configure artifact upload only if OSSRH credentials exist:
+if (project.hasProperty('ossrhUsername')) {
+  uploadArchives {
+    repositories.mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        name 'toolpane'
+        packaging 'jar'
+        description 'Tool Panes for JavaFX'
+        url 'https://github.com/llbit/toolpane'
+        licenses {
+          license {
+            name 'Modified BSD License'
+            url 'http://opensource.org/licenses/BSD-3-Clause'
+            distribution 'repo'
+          }
+        }
+        developers {
+          developer {
+            name 'Jesper Öqvist'
+            email 'jesper@llbit.se'
+          }
+        }
+        scm {
+          connection 'scm:git:https://github.com/llbit/toolpane.git'
+          url 'https://github.com/llbit/toolpane'
+        }
+      }
+    }
+  }
+}
+
